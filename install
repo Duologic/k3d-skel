@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+CLUSTER_NAME=${CLUSTER_NAME-k3d}
+BASEDIR=$(dirname $(realpath "$0"))
+
+export KUBECONFIG="$(k3d get-kubeconfig --name=$CLUSTER_NAME):$HOME/.kube/config"
+kubectl config use-context $CLUSTER_NAME
+
+# Get libs
+cd $BASEDIR; jb install; cd -
+
+# Apply configuration
+tk apply $BASEDIR/environments/default
+echo
+
+# Check status for pods
+kubectl get pods
+echo
+
+echo "Wait for pods to become ready: watch kubectl get pods"
